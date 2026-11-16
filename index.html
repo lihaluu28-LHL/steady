@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Steady — my self-care companion</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3f6fb5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Steady">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<style>
+:root{
+  --bg:#f2f6fb;--card:#fff;--ink:#1f2a44;--muted:#5d6b86;--line:#d9e2ef;
+  --accent:#3f6fb5;--accent-ink:#fff;--soft:#e4edf9;--good:#2f8f6b;--warm:#fff5e0;--warm-ink:#6b4b00;
+  --water:#6fa3e0;--radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#121826;--card:#1b2436;--ink:#e8eefb;--muted:#9fb0cf;--line:#2c3856;--accent:#7aa7ec;--accent-ink:#0f1626;--soft:#243350;--warm:#3a3016;--warm-ink:#f3dca0;--water:#4f86c9}
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#app{max-width:560px;margin:0 auto;padding:0 14px 96px}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 2px 6px}
+header h1{font-size:1.25rem;margin:0}
+header small{color:var(--muted);display:block;font-weight:400;font-size:.85rem}
+h2{font-size:1.15rem;margin:.2rem 0 .4rem}
+h3{font-size:1rem;margin:.2rem 0}
+p{margin:.3rem 0 .6rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin:12px 0}
+.muted{color:var(--muted);font-size:.92rem}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{min-height:46px;border-radius:12px;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:8px 18px;font-weight:600}
+.btn.alt{background:transparent;color:var(--accent)}
+.btn.small{min-height:38px;padding:4px 12px;font-size:.92rem}
+.btn:disabled{opacity:.45;cursor:default}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.row.between{justify-content:space-between}
+.chip{min-height:44px;border:1.5px solid var(--line);background:var(--card);border-radius:12px;padding:8px 12px;text-align:left;display:inline-flex;gap:8px;align-items:center}
+.chip .box{width:20px;height:20px;border:2px solid var(--muted);border-radius:6px;flex:none;display:grid;place-items:center;font-size:14px;line-height:1}
+.chip[aria-pressed=true]{border-color:var(--accent);background:var(--soft)}
+.chip[aria-pressed=true] .box{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.chip.pill{border-radius:99px;min-height:38px;padding:4px 14px}
+.chip.pill[aria-pressed=true]{font-weight:600}
+.scale{display:flex;gap:6px;margin:6px 0 2px}
+.scale button{flex:1;min-height:48px;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font-size:1.4rem}
+.scale button[aria-pressed=true]{border-color:var(--accent);background:var(--soft);box-shadow:0 0 0 2px var(--accent) inset}
+.ends{display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted)}
+.metric{padding:10px 0;border-bottom:1px solid var(--line)}
+.metric:last-child{border:0}
+.metric b{font-size:1rem}
+nav{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;justify-content:center;padding-bottom:env(safe-area-inset-bottom)}
+nav .in{display:flex;max-width:560px;width:100%}
+nav button{flex:1;border:0;background:none;padding:8px 2px 7px;font-size:.72rem;color:var(--muted);min-height:56px}
+nav button span{display:block;font-size:1.35rem;line-height:1.2}
+nav button[aria-current=page]{color:var(--accent);font-weight:700}
+.badge{display:inline-block;font-size:.75rem;border-radius:99px;padding:1px 9px;background:var(--soft);color:var(--accent);font-weight:600}
+.warm{background:var(--warm);color:var(--warm-ink);border-color:transparent}
+.insight{border-left:4px solid var(--accent);padding:4px 0 4px 10px;margin:8px 0}
+.insight b{display:block;font-size:.92rem}
+.big{font-size:1.1rem}
+details{border-top:1px solid var(--line);padding:8px 0}
+details:first-of-type{border:0}
+summary{cursor:pointer;font-weight:600;min-height:32px}
+.bar{height:10px;border-radius:6px;background:var(--soft);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--accent)}
+.legend{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;gap:3px;margin:8px 0}
+.seg button{flex:1;border:0;background:none;border-radius:9px;min-height:38px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed=true]{background:var(--card);color:var(--accent);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.modal{position:fixed;inset:0;background:rgba(10,15,30,.55);display:grid;place-items:center;padding:16px;z-index:10}
+.modal .card{max-width:480px;max-height:88vh;overflow:auto;margin:0}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:10px}
+textarea{min-height:80px}
+.timer{font-size:2rem;font-weight:700;text-align:center;margin:6px 0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+.prog{display:flex;gap:6px;margin:4px 0 10px}
+.prog i{flex:1;height:6px;border-radius:4px;background:var(--line)}
+.prog i.on{background:var(--accent)}
+svg text{fill:var(--muted);font-size:10px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+"use strict";
+/* ============ DATA ============ */
+const METRICS=[
+ {id:'energy',label:'Energy',lo:'Empty',hi:'Full',color:'#d99a00',dash:''},
+ {id:'mood',label:'Mood',lo:'Very low',hi:'Great',color:'#3b82c4',dash:'6 3'},
+ {id:'motivation',label:'Motivation',lo:'None',hi:'Lots',color:'#2f9e7a',dash:'2 3'},
+ {id:'worth',label:'How I feel about myself',short:'Self-worth',lo:'Harsh on myself',hi:'Kind to myself',color:'#a855c7',dash:'8 3 2 3'},
+ {id:'calm',label:'Inner calm',lo:'Overwhelmed',hi:'Calm',color:'#d9506e',dash:'1 0'}
+];
+const FACES=['😞','😕','😐','🙂','😊'];
+const LOADS=[
+ {id:'sleep',t:'Slept badly / tired',i:'Poor sleep lowers mood, focus and emotional control in everyone. Sleep problems are especially common with autism and ADHD, so this is a physical reason, not weakness.'},
+ {id:'hunger',t:'Hungry, thirsty or barely moved',i:'Low food, low water and no movement change mood and focus quickly. It is one of the fastest things to check, and one of the easiest to fix.'},
+ {id:'body',t:'Pain, illness or my body feels off',i:'Pain and illness use up the same energy you would use for coping. Low capacity is expected here.'},
+ {id:'sensory',t:'Too much noise, light, crowds or textures',i:'Many autistic people sense sound, light and touch more intensely. Filtering all of that all day is real work for the brain.'},
+ {id:'social',t:'People, small talk or group stuff',i:'Social situations take extra effort when you have to work out unwritten rules. Needing recovery time afterwards is common, not rude or antisocial.'},
+ {id:'masking',t:'Holding it together / acting "normal"',i:'Masking (hiding natural reactions to fit in) is linked in autism research with exhaustion and burnout. Feeling drained afterwards is an expected result.'},
+ {id:'change',t:'Change, surprises or not knowing what is next',i:'Predictability helps many autistic and anxious brains feel safe. Uncertainty can raise stress even when the change looks small from outside.'},
+ {id:'demands',t:'Too many demands (school, tasks, decisions)',i:'Planning, starting and switching tasks cost more with ADHD. A full day of that drains the tank faster than it looks from outside.'},
+ {id:'pressure',t:'Pressure to be perfect or to achieve',i:'Many gifted young people carry very high expectations, their own and others\'. Perfectionism and anxiety often travel together.'},
+ {id:'emotions',t:'Big feelings I have not sorted out',i:'Some people feel emotions very strongly, and many autistic people find it hard to put a name on what they feel. Unsorted feelings are heavy to carry.'},
+ {id:'conflict',t:'Conflict, criticism or feeling misunderstood',i:'Many people with ADHD describe very intense reactions to criticism or rejection. Feeling misunderstood also hurts more when you are already depleted.'},
+ {id:'understim',t:'Bored or under-challenged',i:'A fast-thinking brain without enough interesting challenge can feel flat, restless or low. It is a real need, not ingratitude.'},
+ {id:'nothing',t:'Not sure / nothing obvious',i:'Sometimes there is no clear cause. Low days happen with anxiety and depression too. You do not need a reason to deserve kindness.'}
+];
+const SIGNS=[
+ {id:'fog',t:'Brain fog',i:'Brain fog is a typical sign of overload or an under-rested system.'},
+ {id:'stuck',t:'Cannot get started',i:'Task paralysis is a common ADHD and autistic experience. It is not laziness: the brain\'s start-up system is overloaded. Tiny first steps work better than willpower.'},
+ {id:'irritable',t:'Irritable',i:'Irritability is often the first warning sign of overload, before shutdown or meltdown. It is information, not bad character.'},
+ {id:'anxious',t:'Anxious / on edge',i:'Anxiety is the alarm system working overtime. It is very common alongside autism and ADHD.'},
+ {id:'looping',t:'Thoughts looping',i:'Looping thoughts are common with anxiety and autism. Getting them out of your head (writing, drawing, talking) usually loosens them.'},
+ {id:'withdraw',t:'Want to be alone',i:'Wanting to withdraw is your system asking for low demand. Planned alone time is a valid recovery tool.'},
+ {id:'tearful',t:'Tearful',i:'Tears release pressure. Nothing is wrong with you for crying.'},
+ {id:'restless',t:'Restless / cannot settle',i:'Restlessness is common with ADHD, and movement is often regulating.'},
+ {id:'shutdown',t:'Going blank / shutting down',i:'Going blank or silent is a protective shutdown. It is not a choice and not rudeness.'},
+ {id:'selfcrit',t:'Being hard on myself',i:'Harsh self-talk is very common when you are depleted. It is a symptom of a heavy day more than a fact about you.'},
+ {id:'flat',t:'Nothing feels fun',i:'Things not feeling fun (anhedonia) is a recognised sign of low mood, not a personality trait. It tends to lift a little with small, doable actions.'}
+];
+const NEEDS=[
+ {id:'calm',t:'Calm down'},{id:'start',t:'Get going'},{id:'self',t:'Be kinder to myself'},
+ {id:'recover',t:'Recharge'},{id:'connect',t:'Connect'},{id:'body',t:'Move / care for my body'}
+];
+const EV={strong:'Strong evidence',some:'Some evidence',emerging:'Emerging / practical'};
+const STRATS=[
+ {id:'water',t:'Water and something to eat',step:'Drink a glass of water and eat something small.',mins:3,effort:1,ev:'some',tags:['body','recover'],loads:['hunger','body'],signs:['irritable','fog'],
+  why:'Low blood sugar and dehydration make mood, focus and irritability worse. It is the cheapest thing to rule out.',res:'General physiology; regular meals and fluids are standard advice for mood and attention.'},
+ {id:'breathe',t:'Slow out-breaths',step:'Breathe in for 4, out for 6. Do 5 rounds. If counting feels odd, hum quietly on the out-breath instead.',mins:2,effort:1,ev:'some',tags:['calm'],loads:['emotions','change'],signs:['anxious','restless','irritable','looping'],
+  why:'A long out-breath slows the body\'s stress response. Some autistic people find focusing on the breath uncomfortable, so humming or counting steps are fine swaps.',res:'Slow-breathing studies show reductions in stress and anxiety; evidence in autistic teens specifically is limited.'},
+ {id:'sensory',t:'Sensory break',step:'Go somewhere quieter and dimmer. Headphones, hood or blanket if helpful. Ten minutes, no demands.',mins:10,effort:1,ev:'emerging',tags:['calm','recover'],loads:['sensory','social','masking','change'],signs:['shutdown','irritable','withdraw'],
+  why:'Cuts the input the brain has been filtering all day, so the bucket can drain.',res:'Widely used by occupational therapists and reported as helpful by autistic people; few controlled trials.'},
+ {id:'pressure',t:'Deep pressure',step:'Heavy blanket, a firm hug, or press your palms together hard for 10 seconds, then release. Repeat.',mins:5,effort:1,ev:'emerging',tags:['calm'],loads:['sensory','emotions'],signs:['anxious','restless','tearful'],
+  why:'Firm pressure feels calming to many people with sensory sensitivities.',res:'Mixed research on weighted blankets; low risk and many people report relief. Notice whether it works for you.'},
+ {id:'move',t:'Move for 5–10 minutes',step:'Walk round the block, stretch, dance to one song, or do 20 jumping jacks.',mins:8,effort:2,ev:'strong',tags:['body','start','self'],loads:['hunger','demands','understim','sleep'],signs:['restless','stuck','flat','fog'],
+  why:'Movement lifts mood and energy, and a single short bout can improve attention in children with ADHD.',res:'Exercise reduces depressive symptoms in young people (meta-analyses); acute exercise and attention in ADHD (Pontifex et al., 2013).'},
+ {id:'outside',t:'Daylight and fresh air',step:'Step outside for 10 minutes. No goal needed.',mins:10,effort:2,ev:'some',tags:['calm','recover','body'],loads:['sleep','sensory','understim'],signs:['flat','fog'],daytime:true,
+  why:'Daylight supports the body clock and mood, and green space is calming for many people.',res:'Time in nature and morning light are linked to better mood and sleep; effects are modest.'},
+ {id:'tiny',t:'The 2-minute start',step:'Pick the smallest piece of the task. Set a timer for 2 minutes and just begin. You may stop when it rings.',mins:2,effort:1,ev:'some',tags:['start'],loads:['demands'],signs:['stuck'],
+  why:'Starting is the hard part with ADHD. A tiny, concrete "if–then" plan ("after my snack I open the file") removes the decision.',res:'Implementation intentions helped children with ADHD (Gawrilow & Gollwitzer, 2008).'},
+ {id:'activate',t:'One small thing that gives a "done it" feeling',step:'Choose one: shower, tidy one surface, music you like, message a friend, draw for 5 minutes. Pick the easiest.',mins:5,effort:2,ev:'strong',tags:['start','self'],loads:['nothing','understim'],signs:['flat','selfcrit','stuck'],
+  why:'When mood is low we stop doing things, which lowers mood further. Small actions first, motivation follows afterwards.',res:'Behavioural activation is a core part of CBT, recommended for young people with depression (e.g. NICE guidance).'},
+ {id:'interest',t:'Time with my special interest',step:'Give 20 minutes to the thing you love most. It counts as self-care, not wasting time.',mins:20,effort:2,ev:'emerging',tags:['recover','self'],loads:['masking','social','understim','demands'],signs:['flat','withdraw'],
+  why:'Deep interests are a big source of joy and calm for many autistic and gifted people, and they recharge the tank.',res:'Autistic people consistently report interests as important for wellbeing; research is growing but small.'},
+ {id:'double',t:'Body-doubling',step:'Do the task near someone else, or on a call while both of you work quietly.',mins:15,effort:2,ev:'emerging',tags:['start','connect'],loads:['demands'],signs:['stuck'],
+  why:'Having another person nearby helps many ADHD brains start and keep going.',res:'Popular in ADHD coaching; little formal research yet.'},
+ {id:'label',t:'Name the feeling',step:'Finish the sentence: "I feel ___ because ___." Use a feelings list if words are hard to find. A rough guess is fine.',mins:3,effort:1,ev:'some',tags:['calm','self'],loads:['emotions','conflict'],signs:['tearful','looping'],
+  why:'Putting a name on a feeling tends to lower its intensity. Many autistic people find naming feelings hard, so guessing is fine.',res:'Affect labelling reduces emotional reactivity (Lieberman et al., 2007).'},
+ {id:'dump',t:'Brain dump',step:'Set a 5-minute timer and write or draw everything in your head. No order, no reading it back.',mins:5,effort:1,ev:'some',tags:['calm'],loads:['pressure','demands','change'],signs:['looping','anxious'],
+  why:'Moving worries onto paper frees up mental space.',res:'Expressive writing and scheduled "worry time" are used in anxiety treatment; effects are modest.'},
+ {id:'friend',t:'Talk to myself like a friend',step:'Write what you would say to a friend who feels exactly like this. Then read it to yourself.',mins:4,effort:1,ev:'some',tags:['self'],loads:['pressure','conflict','nothing'],signs:['selfcrit'],
+  why:'Self-compassion lowers distress without lowering effort or standards.',res:'Self-compassion is linked to less anxiety and depression in adolescents (Marsh et al., 2018 meta-analysis).'},
+ {id:'lowdemand',t:'Low-demand time',step:'Tell someone "I am recharging for 20 minutes." Nothing required of you: no questions, no tasks, no screens that stress you.',mins:20,effort:1,ev:'emerging',tags:['recover','calm'],loads:['demands','social','masking','sensory'],signs:['shutdown','withdraw'],
+  why:'Rest and reduced demands are what autistic adults say helps most with burnout.',res:'Autistic burnout research (Raymaker et al., 2020); qualitative studies, not trials.'},
+ {id:'person',t:'Be near a safe person',step:'Sit in the same room as someone you trust. Or send them a meme or "rough day, no advice needed".',mins:10,effort:2,ev:'strong',tags:['connect','self'],loads:['emotions','conflict'],signs:['tearful','flat','withdraw'],
+  why:'Safe connection is one of the most reliable protectors of mood, and it does not require talking.',res:'Social support is consistently linked with better mental health in adolescents.'},
+ {id:'make',t:'Make something messy',step:'Draw, doodle, play music or build something for 10 minutes. Nobody needs to see it.',mins:10,effort:2,ev:'emerging',tags:['calm','recover'],loads:['emotions','understim'],signs:['tearful','flat','looping'],
+  why:'Creative work lets feelings out without needing words.',res:'Arts-based approaches show benefits for wellbeing; evidence quality varies.'},
+ {id:'winddown',t:'Wind-down for sleep',step:'Dim lights, screens away from now, a warm shower or something calm. Aim for a regular bedtime and wake time.',mins:30,effort:1,ev:'some',tags:['recover'],loads:['sleep'],signs:['fog'],night:true,
+  why:'Regular sleep and wind-down routines support mood and attention. Sleep trouble is common in autism and ADHD. If it persists, a doctor can help (do not self-medicate).',res:'Sleep hygiene and routines have supporting evidence; persistent problems deserve medical advice.'},
+ {id:'goodenough',t:'The good-enough version',step:'Decide what "B-minus" looks like for this task. Do only that, then stop.',mins:5,effort:1,ev:'some',tags:['self','start'],loads:['pressure'],signs:['selfcrit','stuck'],
+  why:'Perfectionism can block starting and finishing. A deliberate "good enough" breaks the freeze.',res:'CBT for perfectionism shows benefits; adolescent studies are fewer.'},
+ {id:'ok',t:'One thing that went okay',step:'Write down one thing that went okay today. "I got up" or "I am still here" counts.',mins:2,effort:1,ev:'emerging',tags:['self'],loads:['nothing','pressure'],signs:['selfcrit','flat'],
+  why:'Low mood filters out what is going fine. This gently widens the view without pretending everything is great.',res:'Small effects in studies of gratitude-type exercises; keep it tiny and honest.'},
+ {id:'ask',t:'Ask for one piece of help',step:'Say or text: "I am overloaded. Can you help me with ___?" Pick one specific thing.',mins:3,effort:2,ev:'emerging',tags:['connect','self'],loads:['demands','conflict','masking'],signs:['shutdown','anxious'],
+  why:'Self-advocacy is a skill that builds control and responsibility. Needing help is normal.',res:'Self-advocacy skills are linked to better outcomes for autistic and ADHD young people.'},
+ {id:'feed',t:'Feed my brain',step:'Do 15 minutes of something genuinely interesting: a puzzle, a video on a deep topic, a hard-but-fun challenge.',mins:15,effort:2,ev:'emerging',tags:['start','recover'],loads:['understim'],signs:['flat','restless'],
+  why:'Gifted and ADHD brains often need real stimulation to feel awake and engaged.',res:'Based on clinical experience with gifted learners; limited formal trials.'}
+];
+const SBY=Object.fromEntries(STRATS.map(s=>[s.id,s]));
+const UNDERSTAND=[
+ ['The bucket idea','Your nervous system keeps asking: "Am I safe? Can I cope?" Everything that drains you (noise, people, masking, demands, poor sleep, hunger, big feelings) goes into one bucket. When it overflows you may have a meltdown (feelings spill out), a shutdown (the system switches off to protect you) or burnout (long-term exhaustion). Recovery activities empty the bucket. Dysregulation is a response, not a choice.'],
+ ['Autism','Many autistic people take in more sensory information, need more predictability and spend a lot of energy decoding social situations and masking. This often leads to exhaustion, shutdowns and anxiety. Needing quiet and routine is a need, not a flaw. Research on autistic camouflaging links it to exhaustion and poorer mental health (e.g. Hull et al., 2017).'],
+ ['ADHD','ADHD is mainly about regulating attention, starting tasks, time and emotions. It is not about trying less. Interest-driven brains work well when something is engaging and stall when it is not. Strong emotional reactions and sensitivity to criticism are commonly reported.'],
+ ['Gifted / twice-exceptional','Being gifted and also autistic or ADHD (twice-exceptional) can mean strong abilities alongside real struggles, so others expect more than you can sustain. Needing both challenge and support is normal. Perfectionism and feeling "different" are common.'],
+ ['Anxiety and low mood','Anxiety and depression are more common in autistic and ADHD young people than average. They are health conditions, not weakness. They respond to support: small actions, sleep, movement, connection, and when needed therapy or medical care. If this feels heavy for more than a couple of weeks, tell a trusted adult or doctor.'],
+ ['Guilt and "should"','Guilt about not coping is itself part of the load. Ticking what is true is a way of seeing the situation clearly: with this much input and this much demand, this is how a nervous system like yours is expected to feel. The goal is not to feel great all the time. It is to feel understood, make one small move and see what helps.'],
+ ['What helps most','Understanding, compassion, acceptance, support and self-advocacy. You are allowed to take up space. You are allowed to rest.']
+];
+/* ============ STATE ============ */
+const KEY='steady.v1';
+let storageOK=true;
+function loadState(){
+  try{const r=localStorage.getItem(KEY);if(r){const s=JSON.parse(r);return Object.assign({name:'',checkins:[],steps:[],shown:[]},s)}}catch(e){storageOK=false}
+  return {name:'',checkins:[],steps:[],shown:[]};
+}
+let S=loadState();
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){storageOK=false}}
+const ui={tab:'checkin',step:0,draft:{m:{},loads:[],signs:[],note:''},result:null,showAll:false,
+  chartMode:'today',hide:{},lib:'strategies',need:null,need2:null,pick:null,timer:null,help:false,msg:'',confirm:false,openStrat:null};
+/* ============ HELPERS ============ */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad=n=>String(n).padStart(2,'0');
+const hm=t=>{const d=new Date(t);return pad(d.getHours())+':'+pad(d.getMinutes())};
+const dkey=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const avg=a=>{a=a.filter(v=>v!=null);return a.length?a.reduce((x,y)=>x+y,0)/a.length:null};
+const todayCI=()=>S.checkins.filter(c=>dkey(c.t)===dkey(Date.now())).sort((a,b)=>a.t-b.t);
+const bucketLevel=c=>Math.min(1,((c.loads||[]).filter(x=>x!=='nothing').length+(c.signs||[]).length*0.5)/8);
+/* ============ CHECK-IN ============ */
+function metricRow(m){
+  const v=ui.draft.m[m.id];
+  return `<div class="metric"><b>${m.label}</b>
+  <div class="scale" role="group" aria-label="${m.label}">${FACES.map((f,i)=>`<button data-act="m" data-id="${m.id}" data-v="${i+1}" aria-pressed="${v===i+1}" aria-label="${m.label} ${i+1} of 5">${f}</button>`).join('')}</div>
+  <div class="ends"><span>${m.lo}</span><span>${m.hi}</span></div></div>`;
+}
+function chips(list,key){
+  return `<div class="row">${list.map(x=>{const on=ui.draft[key].includes(x.id);return `<button class="chip" data-act="tog" data-key="${key}" data-id="${x.id}" aria-pressed="${on}"><span class="box">${on?'✓':''}</span>${esc(x.t)}</button>`}).join('')}</div>`;
+}
+function renderCheckin(){
+  if(ui.result)return renderResult();
+  const st=ui.step;
+  const prog=`<div class="prog">${[0,1,2].map(i=>`<i class="${i<=st?'on':''}"></i>`).join('')}</div>`;
+  const nm=S.name?esc(S.name):'';
+  if(st===0)return `<div class="card">${prog}<h2>${nm?`Hi ${nm}. `:''}How am I right now?</h2><p class="muted">Tap the face that fits best. There are no right answers, and you can skip any row.</p>
+    ${METRICS.map(metricRow).join('')}
+    <div class="row between" style="margin-top:10px"><span class="muted">Takes about 30 seconds</span><button class="btn" data-act="next" ${Object.keys(ui.draft.m).length?'':'disabled'}>Next</button></div></div>`;
+  if(st===1)return `<div class="card">${prog}<h2>What might be filling my bucket?</h2><p class="muted">Tick anything that fits. It is not a confession. It is information.</p>
+    ${chips(LOADS,'loads')}
+    <div class="row between" style="margin-top:12px"><button class="btn alt" data-act="back">Back</button><button class="btn" data-act="next">Next</button></div></div>`;
+  return `<div class="card">${prog}<h2>How is it showing up?</h2><p class="muted">Tick what you notice. Skip if nothing fits.</p>
+    ${chips(SIGNS,'signs')}
+    <p style="margin-top:12px" class="muted">Anything else? (optional, only you can see this)</p>
+    <textarea data-act="note" placeholder="Write if you want to">${esc(ui.draft.note)}</textarea>
+    <div class="row between" style="margin-top:12px"><button class="btn alt" data-act="back">Back</button><button class="btn" data-act="saveci">Save check-in</button></div></div>`;
+}
+function bucketSVG(level){
+  const y=110-level*78, over=level>=0.95;
+  return `<svg viewBox="0 0 140 130" width="130" height="120" role="img" aria-label="Bucket ${Math.round(level*100)} percent full">
+  <defs><clipPath id="bk"><polygon points="25,30 115,30 104,112 36,112"/></clipPath></defs>
+  <rect x="0" y="${y}" width="140" height="${130-y}" fill="var(--water)" clip-path="url(#bk)" opacity=".85"/>
+  <polygon points="25,30 115,30 104,112 36,112" fill="none" stroke="var(--muted)" stroke-width="3"/>
+  <path d="M25 30 Q70 8 115 30" fill="none" stroke="var(--muted)" stroke-width="3"/>
+  ${over?'<circle cx="22" cy="60" r="3" fill="var(--water)"/><circle cx="118" cy="75" r="3" fill="var(--water)"/><circle cx="20" cy="90" r="2.5" fill="var(--water)"/>':''}</svg>`;
+}
+function bucketWord(l){return l<.2?'Plenty of room':l<.5?'Filling up':l<.8?'Getting full':'Nearly overflowing'}
+function safetyNeeded(){
+  const last=S.checkins.slice().sort((a,b)=>b.t-a.t);
+  if(!last.length)return false;
+  const l=last[0];
+  if(l.m.mood===1&&l.m.worth===1)return true;
+  const wk=last.filter(c=>Date.now()-c.t<7*864e5).slice(0,3);
+  return wk.length>=3&&wk.every(c=>(c.m.mood!=null&&c.m.mood<=2)&&(c.m.worth!=null&&c.m.worth<=2));
+}
+function safetyCard(){
+  return `<div class="card warm"><h3>These have been heavy lately</h3><p>That is a lot to carry, and you do not have to carry it alone. Show this to a trusted adult, or your doctor, and say "this is how I have been feeling". If you ever feel unsafe or think about hurting yourself, reach out now.</p><button class="btn small" data-act="help">Who can I talk to?</button></div>`;
+}
+function renderResult(){
+  const c=ui.result, lv=bucketLevel(c), m=c.m;
+  const vals=Object.values(m), lows=vals.filter(v=>v<=2).length, highs=vals.filter(v=>v>=4).length;
+  const has=(c.loads.filter(x=>x!=='nothing').length+c.signs.length)>0;
+  let head;
+  if(lows>=2&&has)head='Given what you ticked, feeling this way makes sense. It is not a flaw. It is your system responding to real load.';
+  else if(lows>=2)head='A low moment. You do not need a reason to deserve kindness.';
+  else if(highs>=3)head='A steadier moment. Worth noticing what is helping.';
+  else head='Thanks for checking in. Noticing is the first step.';
+  const ins=[...c.loads.map(id=>LOADS.find(x=>x.id===id)),...c.signs.map(id=>SIGNS.find(x=>x.id===id))].filter(Boolean);
+  const shown=ui.showAll?ins:ins.slice(0,3);
+  const prev=todayCI().filter(x=>x.t<c.t).pop();
+  let delta='';
+  if(prev){
+    const parts=METRICS.filter(x=>m[x.id]!=null&&prev.m[x.id]!=null).map(x=>{const d=m[x.id]-prev.m[x.id];return `${(x.short||x.label).toLowerCase()} ${d>0?'up':d<0?'down':'same'}`});
+    if(parts.length)delta=`<p class="muted">Since ${hm(prev.t)}: ${parts.join(', ')}.</p>`;
+  }
+  return `<div class="card"><div class="row" style="flex-wrap:nowrap">${bucketSVG(lv)}<div><b>${bucketWord(lv)}</b><p class="big">${head}</p></div></div>${delta}
+  ${shown.map(x=>`<div class="insight">${esc(x.i)}</div>`).join('')}
+  ${ins.length>3?`<button class="btn alt small" data-act="showall">${ui.showAll?'Show fewer':'Show all '+ins.length}</button>`:''}</div>
+  ${safetyNeeded()?safetyCard():''}
+  <h2 style="margin-top:18px">One small next step</h2>${renderPicker(c)}
+  <div class="row" style="margin-top:10px"><button class="btn alt" data-act="newci">New check-in</button><button class="btn alt" data-act="goto" data-tab="progress">See my day</button></div>`;
+}
+/* ============ NEXT STEP PICKER ============ */
+function latestRecent(){const l=S.checkins.slice().sort((a,b)=>b.t-a.t)[0];return l&&Date.now()-l.t<6*36e5?l:null}
+function rank(ctx,need){
+  const hr=new Date().getHours(), m=ctx?ctx.m:{};
+  const maxEffort=m.energy===1?1:m.energy===2?2:3;
+  const recentSkips={};S.shown.filter(x=>Date.now()-x.t<6*36e5).forEach(x=>recentSkips[x.sid]=1);
+  const hist={};S.steps.forEach(x=>{(hist[x.sid]=hist[x.sid]||[]).push(x.helped)});
+  const lastDone={};S.steps.forEach(x=>{lastDone[x.sid]=Math.max(lastDone[x.sid]||0,x.t)});
+  let list=STRATS.filter(s=>(!s.night||hr>=18||hr<=2)&&(!s.daytime||(hr>=7&&hr<=19))&&s.effort<=maxEffort);
+  if(need)list=list.filter(s=>s.tags.includes(need));
+  const sc=s=>{
+    let v=Math.random();
+    if(ctx){
+      v+=3*s.loads.filter(x=>ctx.loads.includes(x)).length+3*s.signs.filter(x=>ctx.signs.includes(x)).length;
+      if(m.calm!=null&&m.calm<=2&&s.tags.includes('calm'))v+=2;
+      if(m.motivation!=null&&m.motivation<=2&&s.tags.includes('start'))v+=2;
+      if(m.worth!=null&&m.worth<=2&&s.tags.includes('self'))v+=2;
+      if(m.energy!=null&&m.energy<=2&&s.tags.includes('recover'))v+=2;
+      if(m.mood!=null&&m.mood<=2&&(s.tags.includes('self')||s.tags.includes('body')))v+=1;
+    }
+    (hist[s.id]||[]).forEach(h=>{v+=h===2?2:h===1?1:-3});
+    if(recentSkips[s.id])v-=4;
+    if(Date.now()-(lastDone[s.id]||0)<3*36e5)v-=3;
+    return v;
+  };
+  return list.map(s=>[sc(s),s.id]).sort((a,b)=>b[0]-a[0]).map(x=>x[1]);
+}
+function ensurePick(ctx){
+  const key=(ctx?ctx.t:'x')+'|'+(ui.need||'');
+  if(!ui.pick||ui.pick.key!==key){
+    const q=rank(ctx,ui.need);
+    ui.pick={key,queue:q,i:0,state:'offer',sid:null};
+  }
+  return ui.pick;
+}
+function renderPicker(ctx){
+  const p=ensurePick(ctx);
+  const needs=`<div class="row" style="margin:6px 0 10px">${NEEDS.map(n=>`<button class="chip pill" data-act="need" data-id="${n.id}" aria-pressed="${ui.need===n.id}">${n.t}</button>`).join('')}</div>`;
+  if(p.state==='rate'){
+    const s=SBY[p.sid];
+    return `<div class="card"><h3>You did "${esc(s.t)}"</h3><p class="big">That is you taking charge of your own wellbeing. That is the skill.</p><p>How do I feel now?</p>
+    <div class="row"><button class="btn" data-act="rate" data-v="2">Better</button><button class="btn alt" data-act="rate" data-v="1">A little</button><button class="btn alt" data-act="rate" data-v="0">Same or worse</button></div>
+    <p class="muted">"Same or worse" is useful too. It helps me suggest better things next time.</p></div>`;
+  }
+  if(p.state==='doing'){
+    const s=SBY[p.sid];
+    return `<div class="card"><h3>${esc(s.t)}</h3><p>${esc(s.step)}</p><div class="timer" id="timer">${pad(Math.floor(s.mins))}:00</div>
+    <div class="row"><button class="btn" data-act="did">I did it</button><button class="btn alt" data-act="timer">Start timer</button><button class="btn alt" data-act="notnow">Not today</button></div></div>`;
+  }
+  const sid=p.queue[p.i%Math.max(1,p.queue.length)];
+  if(!sid)return `${needs}<div class="card"><p>Nothing fits that right now. Try another need, or just rest. Resting counts.</p></div>`;
+  const s=SBY[sid];
+  return `${needs}<div class="card"><span class="badge">${EV[s.ev]}</span> <span class="muted">about ${s.mins} min</span>
+  <h3 style="margin-top:6px">${esc(s.t)}</h3><p class="big">${esc(s.step)}</p><p class="muted">${esc(s.why)}</p>
+  <div class="row"><button class="btn" data-act="try" data-sid="${sid}">I will try this</button><button class="btn alt" data-act="another">Show me another</button></div></div>`;
+}
+/* ============ PROGRESS ============ */
+function chartSVG(labels,series){
+  const W=340,H=190,pl=26,pr=10,pt=8,pb=24,n=labels.length;
+  const X=i=>n===1?pl+(W-pl-pr)/2:pl+(W-pl-pr)*i/(n-1);
+  const Y=v=>pt+(H-pt-pb)*(5-v)/4;
+  let g='';
+  for(let v=1;v<=5;v++)g+=`<line x1="${pl}" x2="${W-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--line)"/><text x="${pl-8}" y="${Y(v)+3}" text-anchor="end">${v}</text>`;
+  labels.forEach((l,i)=>{if(n<=7||i%2===0)g+=`<text x="${X(i)}" y="${H-6}" text-anchor="middle">${esc(l)}</text>`});
+  series.forEach(s=>{
+    let seg=[],segs=[];
+    s.vals.forEach((v,i)=>{if(v==null){if(seg.length)segs.push(seg);seg=[]}else seg.push([X(i),Y(v)])});
+    if(seg.length)segs.push(seg);
+    segs.forEach(sg=>{
+      if(sg.length>1)g+=`<polyline fill="none" stroke="${s.color}" stroke-width="2.5" stroke-dasharray="${s.dash}" points="${sg.map(p=>p.join(',')).join(' ')}"/>`;
+      sg.forEach(p=>g+=`<circle cx="${p[0]}" cy="${p[1]}" r="3.5" fill="${s.color}"/>`);
+    });
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Chart of check-ins, scale 1 to 5">${g}</svg>`;
+}
+function renderProgress(){
+  const mode=ui.chartMode;
+  let labels=[],cols=[];
+  if(mode==='today'){
+    const ci=todayCI();
+    labels=ci.map(c=>hm(c.t));
+    cols=METRICS.map(m=>({m,vals:ci.map(c=>c.m[m.id]??null)}));
+  }else{
+    const days=[];for(let i=6;i>=0;i--)days.push(Date.now()-i*864e5);
+    labels=days.map(t=>DAYS[new Date(t).getDay()]);
+    cols=METRICS.map(m=>({m,vals:days.map(t=>{const a=avg(S.checkins.filter(c=>dkey(c.t)===dkey(t)).map(c=>c.m[m.id]));return a==null?null:Math.round(a*10)/10})}));
+  }
+  const series=cols.filter(c=>!ui.hide[c.m.id]).map(c=>({color:c.m.color,dash:c.m.dash,vals:c.vals}));
+  const has=cols.some(c=>c.vals.some(v=>v!=null));
+  const legend=`<div class="legend">${METRICS.map(m=>`<button class="chip pill" data-act="hide" data-id="${m.id}" aria-pressed="${!ui.hide[m.id]}"><span class="dot" style="background:${m.color}"></span>${m.short||m.label}</button>`).join('')}</div>`;
+  /* patterns */
+  const recent=S.checkins.filter(c=>Date.now()-c.t<14*864e5);
+  const lc={};recent.forEach(c=>c.loads.forEach(id=>{if(id!=='nothing')lc[id]=(lc[id]||0)+1}));
+  const top=Object.entries(lc).sort((a,b)=>b[1]-a[1]).slice(0,4);
+  const mx=top.length?top[0][1]:1;
+  const per=[['Morning',0,12],['Afternoon',12,17],['Evening',17,24]].map(([n,a,b])=>{const r=recent.filter(c=>{const h=new Date(c.t).getHours();return h>=a&&h<b});return [n,avg(r.map(c=>c.m.energy)),r.length]}).filter(x=>x[1]!=null&&x[2]>=2);
+  const sh={};S.steps.forEach(x=>{const o=sh[x.sid]=sh[x.sid]||{n:0,h:0};o.n++;if(x.helped>=1)o.h++});
+  const helped=Object.entries(sh).filter(([,o])=>o.h>0).sort((a,b)=>b[1].h-a[1].h).slice(0,4);
+  const weekSteps=S.steps.filter(x=>Date.now()-x.t<7*864e5).length;
+  const last=todayCI();
+  let sumTxt='';
+  if(last.length>=2){
+    const a=last[0],b=last[last.length-1];
+    sumTxt=METRICS.filter(m=>a.m[m.id]!=null&&b.m[m.id]!=null).map(m=>{const d=b.m[m.id]-a.m[m.id];return `${(m.short||m.label).toLowerCase()} ${d>0?'up':d<0?'down':'same'}`}).join(', ');
+    sumTxt=`<p>Since ${hm(a.t)}: ${sumTxt}. Days go up and down. That is normal.</p>`;
+  }
+  return `<div class="card"><h2>My ${mode==='today'?'day':'week'}</h2>
+  <div class="seg"><button data-act="cm" data-v="today" aria-pressed="${mode==='today'}">Today</button><button data-act="cm" data-v="week" aria-pressed="${mode==='week'}">This week</button></div>
+  ${has?chartSVG(labels,series)+legend:`<p class="muted">No check-ins ${mode==='today'?'today':'this week'} yet. Your chart appears here after the first one.</p>`}
+  ${mode==='today'?sumTxt:''}</div>
+  ${safetyNeeded()?safetyCard():''}
+  ${weekSteps?`<div class="card"><b>${weekSteps}</b> small step${weekSteps>1?'s':''} taken for myself in the last 7 days. 🌱</div>`:''}
+  ${top.length?`<div class="card"><h3>What fills my bucket most (14 days)</h3>${top.map(([id,n])=>`<div style="margin:8px 0"><div class="row between"><span>${esc(LOADS.find(x=>x.id===id).t)}</span><span class="muted">${n}×</span></div><div class="bar"><i style="width:${n/mx*100}%"></i></div></div>`).join('')}<p class="muted">Patterns show what to plan around, not what is wrong with me.</p></div>`:''}
+  ${per.length?`<div class="card"><h3>Energy through the day</h3>${per.map(([n,v])=>`<div class="row between"><span>${n}</span><span>${v.toFixed(1)} / 5</span></div>`).join('')}<p class="muted">Useful for planning demanding things at better times.</p></div>`:''}
+  ${helped.length?`<div class="card"><h3>What has helped me</h3>${helped.map(([id,o])=>`<div class="row between"><span>${esc(SBY[id].t)}</span><span class="muted">${o.h} of ${o.n}</span></div>`).join('')}</div>`:''}`;
+}
+/* ============ LIBRARY ============ */
+function renderLibrary(){
+  const seg=`<div class="seg"><button data-act="lib" data-v="strategies" aria-pressed="${ui.lib==='strategies'}">Strategies</button><button data-act="lib" data-v="understand" aria-pressed="${ui.lib==='understand'}">Understand</button></div>`;
+  if(ui.lib==='understand')return `${seg}<div class="card">${UNDERSTAND.map(([t,x])=>`<details><summary>${t}</summary><p>${esc(x)}</p></details>`).join('')}</div>`;
+  const need=ui.need2;
+  const list=STRATS.filter(s=>!need||s.tags.includes(need));
+  return `${seg}<p class="muted">Evidence = how much research supports it for young people in general. Fewer studies focus on autistic or ADHD teens specifically, so treat these as things to try, and let your own tracker show what works for you.</p>
+  <div class="row" style="margin:6px 0 8px"><button class="chip pill" data-act="need2" data-id="" aria-pressed="${!need}">All</button>${NEEDS.map(n=>`<button class="chip pill" data-act="need2" data-id="${n.id}" aria-pressed="${need===n.id}">${n.t}</button>`).join('')}</div>
+  ${list.map(s=>`<div class="card"><span class="badge">${EV[s.ev]}</span> <span class="muted">${s.mins} min</span><h3 style="margin-top:6px">${esc(s.t)}</h3><p>${esc(s.step)}</p>
+  <details><summary>Why it can help</summary><p>${esc(s.why)}</p><p class="muted"><b>Research:</b> ${esc(s.res)}</p></details>
+  <button class="btn small" data-act="trythis" data-sid="${s.id}">Try this now</button></div>`).join('')}`;
+}
+/* ============ ME ============ */
+function renderMe(){
+  return `<div class="card"><h2>About me</h2><p class="muted">Optional: a name to show in greetings.</p><input type="text" id="nm" value="${esc(S.name)}" placeholder="My name" data-act="name" aria-label="My name"></div>
+  <div class="card"><h3>Need help now?</h3><button class="btn" data-act="help">Who can I talk to?</button></div>
+  <div class="card"><h3>My data</h3><p class="muted">${storageOK?'Everything you enter stays on this device only. There is no account, no tracking, and nothing is sent anywhere. It works without internet once opened. Deleting the app icon or clearing browser data removes it, so back up now and then.':'Saving is not available in this view, so data will be lost when closed. Use the downloaded file version to keep your data.'}</p>
+  <div class="row"><button class="btn alt small" data-act="export">Back up my data</button><button class="btn alt small" data-act="import">Restore</button></div>
+  ${ui.msg?`<p class="muted">${esc(ui.msg)}</p>`:''}
+  <textarea id="bk" placeholder="Backup text appears here. To restore, paste it here, then tap Restore."></textarea>
+  <p style="margin-top:10px"><button class="btn alt small" data-act="reset">${ui.confirm?'Tap again to delete everything':'Delete all my data'}</button></p></div>
+  <div class="card muted"><b>Please note:</b> Steady is a self-awareness and self-care tool, not a medical device. It cannot diagnose anything or replace a doctor, therapist or CAMHS. Share the charts with them if useful.<br><br>Steady v1.1 · © 2026 · All rights reserved.</div>`;
+}
+function helpModal(){
+  return `<div class="modal" data-act="closehelp"><div class="card" role="dialog" aria-modal="true" aria-label="Help" data-stop="1">
+  <h2>You deserve support</h2>
+  <p>Talk to a trusted adult. You do not have to explain it perfectly. "I am struggling" is enough.</p>
+  <p><b>If you are in danger or have hurt yourself:</b> call <b>999</b>.</p>
+  <p><b>Childline</b> (under 19, free, UK): 0800 1111, or chat online.<br><b>Shout</b> (free, 24/7 text): text SHOUT to 85258.<br><b>Samaritans</b> (free, 24/7): 116 123.</p>
+  <p class="muted">Your GP or school can also refer you to young people's mental health services (CAMHS).</p>
+  <button class="btn" data-act="closehelp">Close</button></div></div>`;
+}
+/* ============ RENDER ============ */
+const TABS=[['checkin','📝','Check in'],['next','🌱','Next step'],['progress','📈','Progress'],['library','📚','Learn'],['me','🙂','Me']];
+function render(){
+  const y=window.scrollY;
+  let main='';
+  if(ui.tab==='checkin')main=renderCheckin();
+  else if(ui.tab==='next')main=`<h2 style="margin-top:14px">What would help right now?</h2>${renderPicker(latestRecent())}`;
+  else if(ui.tab==='progress')main=renderProgress();
+  else if(ui.tab==='library')main=renderLibrary();
+  else main=renderMe();
+  $('#app').innerHTML=`<header><h1>Steady<small>Small steps. No guilt.</small></h1><button class="btn alt small" data-act="help">Need help?</button></header>
+  ${!storageOK&&ui.tab!=='me'?'<div class="card warm muted">Saving is not available in this view. Use the downloaded file to keep your data.</div>':''}
+  <main>${main}</main>
+  <nav><div class="in">${TABS.map(([id,ic,t])=>`<button data-act="goto" data-tab="${id}" ${ui.tab===id?'aria-current="page"':''}><span>${ic}</span>${t}</button>`).join('')}</div></nav>${ui.help?helpModal():''}`;
+  window.scrollTo(0,y);
+}
+/* ============ EVENTS ============ */
+function stopTimer(){if(ui.timer){clearInterval(ui.timer);ui.timer=null}}
+document.addEventListener('click',e=>{
+  if(e.target.closest('[data-stop]')&&!e.target.closest('button'))return;
+  const b=e.target.closest('[data-act]');if(!b)return;
+  const a=b.dataset.act,d=b.dataset;
+  if(a==='note'||a==='name')return;
+  switch(a){
+    case'goto':ui.tab=d.tab;ui.confirm=false;window.scrollTo(0,0);break;
+    case'm':{const cur=ui.draft.m[d.id];if(cur===+d.v)delete ui.draft.m[d.id];else ui.draft.m[d.id]=+d.v;break}
+    case'tog':{const arr=ui.draft[d.key],i=arr.indexOf(d.id);if(i>=0)arr.splice(i,1);else{arr.push(d.id);if(d.key==='loads'){if(d.id==='nothing')ui.draft.loads=['nothing'];else ui.draft.loads=ui.draft.loads.filter(x=>x!=='nothing')}}break}
+    case'next':ui.step++;window.scrollTo(0,0);break;
+    case'back':ui.step--;break;
+    case'saveci':{
+      const c={t:Date.now(),m:Object.assign({},ui.draft.m),loads:ui.draft.loads.slice(),signs:ui.draft.signs.slice(),note:ui.draft.note.trim()};
+      S.checkins.push(c);save();ui.result=c;ui.pick=null;ui.showAll=false;stopTimer();window.scrollTo(0,0);break}
+    case'newci':ui.result=null;ui.step=0;ui.draft={m:{},loads:[],signs:[],note:''};ui.pick=null;stopTimer();window.scrollTo(0,0);break;
+    case'showall':ui.showAll=!ui.showAll;break;
+    case'need':ui.need=ui.need===d.id?null:d.id;ui.pick=null;stopTimer();break;
+    case'need2':ui.need2=d.id||null;break;
+    case'another':{const p=ui.pick;S.shown.push({t:Date.now(),sid:p.queue[p.i%p.queue.length]});save();p.i++;break}
+    case'try':ui.pick.state='doing';ui.pick.sid=d.sid;break;
+    case'timer':{
+      stopTimer();const s=SBY[ui.pick.sid];let left=Math.round(s.mins*60);
+      const tick=()=>{const t=$('#timer');if(t)t.textContent=pad(Math.floor(left/60))+':'+pad(left%60);if(left<=0){stopTimer();if(t)t.textContent='Time. Well done.'}left--};
+      tick();ui.timer=setInterval(tick,1000);return}
+    case'did':stopTimer();ui.pick.state='rate';break;
+    case'notnow':stopTimer();S.shown.push({t:Date.now(),sid:ui.pick.sid});save();ui.pick.state='offer';ui.pick.i++;break;
+    case'rate':S.steps.push({t:Date.now(),sid:ui.pick.sid,helped:+d.v});save();ui.pick=null;ui.need=null;ui.tab=ui.tab;
+      ui.pick={key:'done',queue:[],i:0,state:'offer'};ui.pick=null;break;
+    case'cm':ui.chartMode=d.v;break;
+    case'hide':ui.hide[d.id]=!ui.hide[d.id];break;
+    case'lib':ui.lib=d.v;break;
+    case'trythis':ui.need=null;ui.pick={key:'direct',queue:[d.sid],i:0,state:'doing',sid:d.sid};ui.tab='next';window.scrollTo(0,0);break;
+    case'help':ui.help=true;break;
+    case'closehelp':if(b.classList.contains('modal')&&e.target!==b)return;ui.help=false;break;
+    case'export':{const txt=JSON.stringify(S);const ta=$('#bk');if(ta){ta.value=txt;ta.select()}
+      try{const bl=new Blob([txt],{type:'application/json'});const u=URL.createObjectURL(bl);const l=document.createElement('a');l.href=u;l.download='steady-backup-'+dkey(Date.now())+'.json';document.body.appendChild(l);l.click();l.remove();setTimeout(()=>URL.revokeObjectURL(u),1000);ui.msg='Backup created. If no file downloaded, copy the text below and keep it somewhere safe.'}catch(er){ui.msg='Copy the text below and keep it somewhere safe.'}
+      render();const t2=$('#bk');if(t2)t2.value=txt;return}
+    case'import':{const t=$('#bk').value.trim();try{const o=JSON.parse(t);if(!o||!Array.isArray(o.checkins))throw 0;S=Object.assign({name:'',checkins:[],steps:[],shown:[]},o);save();ui.msg='Restored.'}catch(er){ui.msg='That did not look like a Steady backup.'}break}
+    case'reset':if(ui.confirm){S={name:'',checkins:[],steps:[],shown:[]};save();ui.confirm=false;ui.msg='All data deleted.';ui.result=null;ui.pick=null}else ui.confirm=true;break;
+  }
+  render();
+});
+document.addEventListener('input',e=>{
+  const a=e.target.dataset&&e.target.dataset.act;
+  if(a==='note')ui.draft.note=e.target.value;
+  if(a==='name'){S.name=e.target.value.slice(0,30);save()}
+});
+render();
+/* offline support + ask the browser to keep data */
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})});
+}
+try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist()}catch(e){}
+</script>
+</body>
+</html>
